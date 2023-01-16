@@ -1,22 +1,32 @@
 #include <Servo.h>
 
-#define MOTOR_PORT 9
+#define DISK_PIN 9
+#define TOLKATEL_PIN 10
 #define BQ_BLUETOOTH 19200
-#define PISTON_DELAY 4
+#define DEFAULT_DELAY 500
+#define PISTON_DELAY 4000
 
-Servo serv;
+Servo disk;
+Servo tolk;
 
-void to_start();
+void checkData(char data);
+void to_start(Servo serv);
 void to_container_N1();
 void to_container_N2();
-void checkData(char data);
+void tolkatel();
 
-void setup() {
-  pinMode(MOTOR_PORT, OUTPUT);
-  serv.attach(MOTOR_PORT);
+void setup() 
+{
   Serial.begin(BQ_BLUETOOTH);
   
-  to_start();
+  pinMode(DISK_PIN, OUTPUT);
+  pinMode(TOLKATEL_PIN, OUTPUT);
+
+  disk.attach(DISK_PIN);
+  tolk.attach(TOLKATEL_PIN);
+  
+  to_start(disk);
+  to_start(tolk);
 }
 
 void loop() 
@@ -39,7 +49,7 @@ void checkData(char data)
       break;
 
       case '0': 
-      to_start();
+      to_start(disk);
       break;
       
       default: 
@@ -47,24 +57,31 @@ void checkData(char data)
         }
   }
 
-void to_start()
+void to_start(Servo serv)
 {
   serv.write(90);
-  delay(500);
+  delay(DEFAULT_DELAY);
 }
 
 void to_container_N1() 
 {
-  serv.write(180);
-  delay(500);
-  //delay(PISTON_DELAY*1000);
-  to_start();
+  disk.write(180);
+  delay(DEFAULT_DELAY);
+  tolkatel();
+  to_start(disk);
 }
 
 void to_container_N2()
 {
-   serv.write(0);
-   delay(500);
-   //delay(PISTON_DELAY*1000);
-   to_start();
+   disk.write(0);
+   delay(DEFAULT_DELAY);
+   tolkatel();
+   to_start(disk);
+}
+
+void tolkatel()
+{
+  tolk.write(0);
+  delay(DEFAULT_DELAY);
+  to_start(tolk);
 }
