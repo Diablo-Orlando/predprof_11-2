@@ -13,7 +13,7 @@ int greenColor = 0;
 int blueColor = 0;
 
 void checkData(char data);
-void scan();
+char scan();
 
 void setup() {
    pinMode(s0, OUTPUT);
@@ -47,32 +47,44 @@ void checkData(char data) {
         }
 }
 
-void scan()
+char scan()
 {
   digitalWrite(s2, LOW);
   digitalWrite(s3, LOW);
   redfrequency = pulseIn(sOut, LOW);
   redColor = map(redfrequency, 162, 148, 255, 0);
+  if(redfrequency > 4 && redfrequency < 23) {
+    Serial.println("RED");
+    return 'R';
+  }
   delay(100);
 
   digitalWrite(s3, HIGH);
   bluefrequency = pulseIn(sOut, LOW);
   blueColor = map(bluefrequency, 126, 137, 255, 0);
+  if(bluefrequency > 5 && bluefrequency < 16) {
+    Serial.println("BLUE");
+    return 'B';
+  }
   delay(100);
   
   digitalWrite(s2, HIGH);
   greenfrequency = pulseIn(sOut, LOW);
   greenColor = map(greenfrequency, 182, 206, 255, 0);
+  if(greenfrequency > 16 && greenfrequency < 55) {
+    Serial.println("GREEN");
+    return 'G';
+  }
   delay(100);
 
-  if(redfrequency > 4 && redfrequency < 23)
-    Serial.println("RED");
-  else if(greenfrequency > 15 && greenfrequency < 55)
-    Serial.println("GREEN");
-  else if(bluefrequency > 5 && bluefrequency < 12)
-    Serial.println("BLUE");
-  else 
-    Serial.println("NO OBJECT");
+//  if(redfrequency > 4 && redfrequency < 23)
+//    Serial.println("RED");
+//  else if(greenfrequency > 30 && greenfrequency < 55)
+//    Serial.println("GREEN");
+//  else if(bluefrequency > 5 && bluefrequency < 20)
+//    Serial.println("BLUE");
+//  else 
+//    Serial.println("NO OBJECT");
 
 //  if(redColor > greenColor && redColor > blueColor){
 //    Serial.println("RED");
