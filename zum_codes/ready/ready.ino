@@ -1,12 +1,12 @@
 #include <Servo.h>
 
-#define DISK_PIN 3
-#define TOLKATEL_PIN 10
-#define s0 8
-#define s1 9
+#define DISK_PIN 6
+#define TOLKATEL_PIN 5
+#define s0 12
+#define s1 11
 #define s2 10
-#define s3 11
-#define sOut 12
+#define s3 9
+#define sOut 8
 
 #define BQ_BLUETOOTH 19200
 #define DEFAULT_DELAY 500
@@ -20,20 +20,16 @@ void to_start(Servo serv);
 void to_container_N1();
 void to_container_N2();
 void tolkatel();
-void scan();
+char scan();
 void checkColor(char c);
+void moving();
 
-char color;
 char container_1_colors[2] {};
 char container_2_colors[2] {};
 
 int redfrequency = 0;
 int bluefrequency = 0;
 int greenfrequency = 0;
-
-int redColor = 0;
-int greenColor = 0;
-int blueColor = 0;
 
 void setup() 
 {
@@ -43,14 +39,13 @@ void setup()
   pinMode(s1, OUTPUT);
   pinMode(s2, OUTPUT);
   pinMode(s3, OUTPUT);
+  pinMode(DISK_PIN, OUTPUT);
+  pinMode(TOLKATEL_PIN, OUTPUT);
 
   pinMode(sOut, INPUT);
 
   digitalWrite(s0, HIGH);
   digitalWrite(s1, LOW);
-  
-  pinMode(DISK_PIN, OUTPUT);
-  pinMode(TOLKATEL_PIN, OUTPUT);
 
   disk.attach(DISK_PIN);
   tolk.attach(TOLKATEL_PIN);
@@ -59,19 +54,34 @@ void setup()
   to_start(tolk);
 }
 
+void debug()
+{
+  for (int i = 0; i < 2; i++)
+    Serial.println(container_1_colors[i]);
+  }
+
+
 void loop() 
 {
- if (Serial.available() >= 4) { 
+ if (Serial.available() > 0) { 
     checkData();
   }
 }
 
 void checkData()
-{  
-   container_1_colors[0] = Serial.read();
-   container_1_colors[1] = Serial.read();
-   container_2_colors[0] = Serial.read();
-   container_2_colors[1] = Serial.read();
+{
+  if (Serial.read() == 'C') {
+    for (int i = 0; i < 2; i++){
+       container_1_colors[i] = Serial.read();
+    }
+    for(int i = 0; i < 2; i++) {
+       container_2_colors[i] = Serial.read();
+    }
+  }
+  else if (Serial.read() == 'I') {
+      debug();
+      moving();
+  }
 }
 
 void to_start(Servo serv)
@@ -103,50 +113,45 @@ void tolkatel()
   to_start(tolk);
 }
 
-void scan()
+char scan()
 {
-  digitalWrite(s2, LOW);
+   digitalWrite(s2, LOW);
   digitalWrite(s3, LOW);
   redfrequency = pulseIn(sOut, LOW);
-  redColor = map(redfrequency, 8, 174, 255, 0);
+  if(redfrequency > 4 && redfrequency < 23) {
+    Serial.println("RED");
+    return 'R';
+  }
+  delay(100);
 
+  digitalWrite(s3, HIGH);
+  bluefrequency = pulseIn(sOut, LOW);
+  if(bluefrequency > 5 && bluefrequency < 16) {
+    Serial.println("BLUE");
+    return 'B';
+  }
   delay(100);
   
   digitalWrite(s2, HIGH);
-  digitalWrite(s3, HIGH);
   greenfrequency = pulseIn(sOut, LOW);
-  greenColor = map(greenfrequency, 19, 250, 255, 0);
-
-  delay(100);
-
-  digitalWrite(s2, LOW);
-  digitalWrite(s3, HIGH);
-  bluefrequency = pulseIn(sOut, LOW);
-  blueColor = map(bluefrequency, 7, 144, 255, 0);
-  
-  delay(100);
-
-  if(redColor > greenColor && redColor > blueColor){
-     color = 'R';
-     Serial.println("RED");
-  }
-  else if(greenColor > redColor && greenColor > blueColor){
-    color = 'G';
+  if(greenfrequency > 16 && greenfrequency < 55) {
     Serial.println("GREEN");
+    return 'G';
   }
-  else if(blueColor > redColor && blueColor > greenColor){
-    color = 'B';
-    Serial.println("BLUE");
-  }
+  delay(100);
 }
 
-void recieveColors()
+void moving()
 {
-    
+  char color = scan();
+  for (int i = 0; i < 2; i++) {
+    if (color == container_1_colors[i]) {
+      container_1_colors[i] = '0';
+      to_container_N1();
+      }
+    else if (color == container_2_colors[i]) {
+      container_2_colors[i] = '0';
+      to_container_N2();
+      }
+    } 
 }
-
-void checkColor(char c)
-{
-  
-}
-
