@@ -15,21 +15,16 @@
 Servo disk;
 Servo tolk;
 
-void checkData();
+char checkData();
 void to_start(Servo serv);
 void to_container_N1();
 void to_container_N2();
 void tolkatel();
 char scan();
-void checkColor(char c);
 void moving();
 
 char container_1_colors[2] {};
 char container_2_colors[2] {};
-
-int redfrequency = 0;
-int bluefrequency = 0;
-int greenfrequency = 0;
 
 void setup() 
 {
@@ -41,11 +36,7 @@ void setup()
   pinMode(s3, OUTPUT);
   pinMode(DISK_PIN, OUTPUT);
   pinMode(TOLKATEL_PIN, OUTPUT);
-
   pinMode(sOut, INPUT);
-
-  digitalWrite(s0, HIGH);
-  digitalWrite(s1, LOW);
 
   disk.attach(DISK_PIN);
   tolk.attach(TOLKATEL_PIN);
@@ -64,24 +55,14 @@ void debug()
 void loop() 
 {
  if (Serial.available() > 0) { 
-    checkData();
+    char color = checkData();
   }
 }
 
-void checkData()
+char checkData()
 {
-  if (Serial.read() == 'C') {
-    for (int i = 0; i < 2; i++){
-       container_1_colors[i] = Serial.read();
-    }
-    for(int i = 0; i < 2; i++) {
-       container_2_colors[i] = Serial.read();
-    }
-  }
-  else if (Serial.read() == 'I') {
-      debug();
-      moving();
-  }
+  char recievedData = Serial.read();
+  return recievedData;
 }
 
 void to_start(Servo serv)
@@ -113,45 +94,48 @@ void tolkatel()
   to_start(tolk);
 }
 
+int scanRED()
+{
+  digitalWrite(s2, LOW);
+  digitalWrite(s3, LOW);
+  int freq = pulseIn(sOut, LOW, 1000000);
+  return freq;
+}
+
+int scanBLUE()
+{
+  digitalWrite(s3, HIGH);
+  int freq = pulseIn(sOut, LOW, 1000000);
+  return freq;
+}
+
+int scanGREEN()
+{
+  digitalWrite(s2, HIGH);
+  int freq = pulseIn(sOut, LOW, 1000000);
+  return freq;
+}
+
 char scan()
 {
-   digitalWrite(s2, LOW);
-  digitalWrite(s3, LOW);
-  redfrequency = pulseIn(sOut, LOW);
-  if(redfrequency > 4 && redfrequency < 23) {
-    Serial.println("RED");
-    return 'R';
-  }
-  delay(100);
+  digitalWrite(s0, HIGH);
+  digitalWrite(s1, LOW);
 
-  digitalWrite(s3, HIGH);
-  bluefrequency = pulseIn(sOut, LOW);
-  if(bluefrequency > 5 && bluefrequency < 16) {
-    Serial.println("BLUE");
-    return 'B';
-  }
-  delay(100);
+  int frequency = scanRED();
+  if(frequency > 4 && frequency < 23)
+    return 'R';
   
-  digitalWrite(s2, HIGH);
-  greenfrequency = pulseIn(sOut, LOW);
-  if(greenfrequency > 16 && greenfrequency < 55) {
-    Serial.println("GREEN");
+  frequency = scanBLUE();
+  if(frequency > 5 && frequency < 16)
+    return 'B';
+  
+  frequency = scanGREEN();
+  if(frequency > 16 && frequency < 55)
     return 'G';
-  }
-  delay(100);
 }
 
 void moving()
 {
   char color = scan();
-  for (int i = 0; i < 2; i++) {
-    if (color == container_1_colors[i]) {
-      container_1_colors[i] = '0';
-      to_container_N1();
-      }
-    else if (color == container_2_colors[i]) {
-      container_2_colors[i] = '0';
-      to_container_N2();
-      }
-    } 
+  
 }
