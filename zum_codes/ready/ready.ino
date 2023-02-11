@@ -22,12 +22,22 @@ void to_container_N1();
 void to_container_N2();
 void tolkatel();
 char scan();
+<<<<<<< HEAD
 int moving();
+=======
+int scanRED();
+int scanBLUE();
+int scanGREEN();
+int moving();
+void writeColors(char colors[]);
+void amountColors(char colors[]);
+>>>>>>> 2d638f55faf19c151addc11b8d9ec234483dff82
 
 char stat = 'S';
 
 char container_1_colors[2] {};
 char container_2_colors[2] {};
+int amount = 0;
 
 void setup() 
 {
@@ -40,6 +50,10 @@ void setup()
   pinMode(DISK_PIN, OUTPUT);
   pinMode(TOLKATEL_PIN, OUTPUT);
   pinMode(sOut, INPUT);
+  
+  digitalWrite(OE, LOW);
+  digitalWrite(s0, HIGH);
+  digitalWrite(s1, LOW);
 
   disk.attach(DISK_PIN);
   tolk.attach(TOLKATEL_PIN);
@@ -57,17 +71,43 @@ void debug()
 
 void loop() 
 {
+<<<<<<< HEAD
  if (Serial.available() >= 6) { 
     if (checkData() != '0') {
+=======
+  if (Serial.available() >= 6) { 
+    if (checkData() != '0')
+>>>>>>> 2d638f55faf19c151addc11b8d9ec234483dff82
       Serial.println(container_1_colors[0]);
       Serial.println(container_1_colors[1]);
       Serial.println(container_2_colors[0]);
       Serial.println(container_2_colors[1]);
+<<<<<<< HEAD
       if (moving() != 0) {
         Serial.println("Working");
         }
     }
+=======
+      Serial.write(container_1_colors[0]);
+      moving();
+>>>>>>> 2d638f55faf19c151addc11b8d9ec234483dff82
   }
+  
+}
+
+void amountColors(char colors[])
+{
+  for (int i = 0; i < 6; i++)
+    if (colors[i] != '0')
+      amount++;
+}
+
+void writeColors(char colors[])
+{
+  container_1_colors[0] = colors[1];
+  container_1_colors[1] = colors[2];
+  container_2_colors[0] = colors[4];
+  container_2_colors[1] = colors[5];
 }
 
 void writeColors(char colors[])
@@ -80,6 +120,7 @@ void writeColors(char colors[])
 
 char checkData()
 {
+<<<<<<< HEAD
   char recievedData[6];
   for (int i = 0; i < 6; i++)
     recievedData[i] = Serial.read();
@@ -87,6 +128,16 @@ char checkData()
     writeColors(recievedData);
   else if (recievedData[0] == 'E') digitalWrite(OE, LOW);
   else if (recievedData[0] == 'D') digitalWrite(OE, HIGH);
+=======
+  char recievedData[6] {};
+  for (int i = 0; i < 6; i++)
+    recievedData[i] = Serial.read();
+  if (recievedData[0] == '1' && recievedData[3] == '2') {
+    writeColors(recievedData);
+    amountColors(recievedData);
+    Serial.flush();
+  }
+>>>>>>> 2d638f55faf19c151addc11b8d9ec234483dff82
   else return '0';
 }
 
@@ -141,24 +192,51 @@ int scanGREEN()
   return freq;
 }
 
+int *scanYELLOW()
+{
+  static int freqs[3] {};
+  freqs[0] = scanRED();
+  freqs[1] = scanBLUE();
+  freqs[2] = scanGREEN();
+  return freqs;
+}
+
 char scan()
 {
-  digitalWrite(s0, HIGH);
-  digitalWrite(s1, LOW);
+  digitalWrite(OE, LOW);
+  delay(100);
 
   int frequency = scanRED();
-  if(frequency > 4 && frequency < 23)
+  if(frequency > 11 && frequency < 23) {
+    digitalWrite(OE, HIGH);
     return 'R';
+  }
   
   frequency = scanBLUE();
-  if(frequency > 5 && frequency < 16)
+  if(frequency > 5 && frequency < 16) {
+    digitalWrite(OE, HIGH);
     return 'B';
+  }
   
   frequency = scanGREEN();
-  if(frequency > 16 && frequency < 55)
+  if(frequency > 16 && frequency < 55) {
+    digitalWrite(OE, HIGH);
     return 'G';
+<<<<<<< HEAD
 
    return '0';
+=======
+  }
+
+  int* freqs = scanYELLOW();
+  if(freqs[0] > 6 && freqs[0] < 10 && freqs[1] > 19 && freqs[1] < 25 && freqs[2] < 8 && freqs[2] > 15) {
+    digitalWrite(s0, LOW);
+    digitalWrite(OE, HIGH);
+    return 'Y';
+  }
+
+  return '0';
+>>>>>>> 2d638f55faf19c151addc11b8d9ec234483dff82
 }
 
 int moving()
@@ -166,6 +244,7 @@ int moving()
   if (stat != 'W') {
     stat = 'W';
     char color = scan();
+<<<<<<< HEAD
     if (color != 0){
       for (int i = 0; i < 2; i++) {
         if (container_1_colors[i] == color) {
@@ -179,4 +258,22 @@ int moving()
     }
   }
     else return 0;
+=======
+    for (int i = 0; i < amount; i ++) {
+      for (int j = 0; j < 2; j++) {
+        if (container_1_colors[j] == color) {
+          container_1_colors[j] = 0;
+          to_container_N1();
+          }
+        else if (container_2_colors[j] == color) {
+          container_2_colors[j] = 0;
+          to_container_N2();
+          }
+        else return 0;
+      }
+    }
+    Serial.println("done");
+  }
+  return 1;
+>>>>>>> 2d638f55faf19c151addc11b8d9ec234483dff82
 }
