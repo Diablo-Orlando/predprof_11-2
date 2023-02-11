@@ -1,7 +1,8 @@
-#include <Servo.h>
+ #include <Servo.h>
 
 #define DISK_PIN 6
 #define TOLKATEL_PIN 5
+#define OE 13
 #define s0 12
 #define s1 11
 #define s2 10
@@ -21,7 +22,9 @@ void to_container_N1();
 void to_container_N2();
 void tolkatel();
 char scan();
-void moving();
+int moving();
+
+char stat = 'S';
 
 char container_1_colors[2] {};
 char container_2_colors[2] {};
@@ -54,15 +57,37 @@ void debug()
 
 void loop() 
 {
- if (Serial.available() > 0) { 
-    char color = checkData();
+ if (Serial.available() >= 6) { 
+    if (checkData() != '0') {
+      Serial.println(container_1_colors[0]);
+      Serial.println(container_1_colors[1]);
+      Serial.println(container_2_colors[0]);
+      Serial.println(container_2_colors[1]);
+      if (moving() != 0) {
+        Serial.println("Working");
+        }
+    }
   }
+}
+
+void writeColors(char colors[])
+{
+  container_1_colors[0] = colors[1];
+  container_1_colors[1] = colors[2];
+  container_2_colors[0] = colors[4];
+  container_2_colors[1] = colors[5];
 }
 
 char checkData()
 {
-  char recievedData = Serial.read();
-  return recievedData;
+  char recievedData[6];
+  for (int i = 0; i < 6; i++)
+    recievedData[i] = Serial.read();
+  if (recievedData[0] == '1' && recievedData[3] == '2')
+    writeColors(recievedData);
+  else if (recievedData[0] == 'E') digitalWrite(OE, LOW);
+  else if (recievedData[0] == 'D') digitalWrite(OE, HIGH);
+  else return '0';
 }
 
 void to_start(Servo serv)
@@ -132,10 +157,26 @@ char scan()
   frequency = scanGREEN();
   if(frequency > 16 && frequency < 55)
     return 'G';
+
+   return '0';
 }
 
-void moving()
+int moving()
 {
-  char color = scan();
-  
+  if (stat != 'W') {
+    stat = 'W';
+    char color = scan();
+    if (color != 0){
+      for (int i = 0; i < 2; i++) {
+        if (container_1_colors[i] == color) {
+          to_container_N1();
+          }
+        else if (container_2_colors[i] == color) {
+          to_container_N2();
+          }
+        else return 0;
+        }
+    }
+  }
+    else return 0;
 }
