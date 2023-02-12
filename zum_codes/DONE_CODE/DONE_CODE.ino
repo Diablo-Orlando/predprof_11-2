@@ -16,24 +16,11 @@
 Servo disk;
 Servo tolk;
 
-void to_start(Servo serv);
-void to_container_N1();
-void to_container_N2();
-void tolkatel();
-char scan();
-int scanRED();
-int scanBLUE();
-int scanGREEN();
-void setup_container(char _packet[]);
-int set_container(char color);
-void move_to_container(int _container);
-void check_packet();
-
 char container_1_colors[2] {};
 char container_2_colors[2] {};
-int container = 0;
+char packet[6] {};
 char cube_color;
-char packet[6];
+int container = 0;
 
 void setup() 
 {
@@ -58,89 +45,12 @@ void setup()
   to_start(tolk);
 }
 
-void loop() 
-{
-  //update
-  check_packet();
-
-  cube_color = scan();
-  
-  
-  //model
-  setup_container(packet);
-  container = set_container(cube_color);
-  //actuate
-  move_to_container(container);  
-}
-
-void setup_container(char _packet[])
-{
-  if ( _packet[0] == '1' && _packet[3] == '2') {
-    container_1_colors[0] = _packet[1];
-    container_1_colors[1] = _packet[2];
-    container_2_colors[0] = _packet[4];
-    container_2_colors[1] = _packet[5];
-  }
-  else Serial.println("packet ignored");
-  return;
-}
-
-int set_container(char color)
-{
-  if (color == '0') return 0;
-  if (color == container_1_colors[0] || color == container_1_colors[1]) return 1;
-  return 2;
-}
-
-void move_to_container(int _container)
-{
-  if (_container == 0) return;
-
-  if (_container == 1) 
-    to_container_N1();
-
-  if (_container == 2) 
-    to_container_N2();
-
-  return;
-}
-
 void check_packet()
 {
   if (Serial.available() >= 6)
     for (int i = 0; i < 6; i++) 
       packet[i] = Serial.read();
   return;
-}
-
-
-void to_start(Servo serv)
-{
-  serv.write(90);
-  delay(DEFAULT_DELAY);
-}
-
-void to_container_N1() 
-{
-  disk.write(180);
-  delay(DEFAULT_DELAY);
-  tolkatel();
-  to_start(disk);
-}
-
-void to_container_N2()
-{
-   disk.write(0);
-   delay(DEFAULT_DELAY);
-   tolkatel();
-   to_start(disk);
-}
-
-void tolkatel()
-{
-  tolk.write(0);
-  delay(DEFAULT_DELAY);
-  to_start(tolk);
 }
 
 int scanRED()
@@ -199,4 +109,77 @@ char scan()
   }
   
   return '0';
+}
+
+void setup_container(char _packet[])
+{
+  if ( _packet[0] == '1' && _packet[3] == '2') {
+    container_1_colors[0] = _packet[1];
+    container_1_colors[1] = _packet[2];
+    container_2_colors[0] = _packet[4];
+    container_2_colors[1] = _packet[5];
+  }
+  else Serial.println("packet ignored");
+  return;
+}
+
+int set_container(char color)
+{
+  if (color == container_1_colors[0] || color == container_1_colors[1]) return 1;
+  else if (color == container_2_colors[0] || color == container_2_colors[1]) return 2;
+  return 0;
+}
+
+void move_to_container(int _container)
+{
+  if (_container == 0) return;
+
+  if (_container == 1) 
+    to_container_N1();
+
+  if (_container == 2) 
+    to_container_N2();
+
+  return;
+}
+
+void to_start(Servo serv)
+{
+  serv.write(90);
+  delay(DEFAULT_DELAY);
+}
+
+void to_container_N1() 
+{
+  disk.write(180);
+  delay(DEFAULT_DELAY);
+  tolkatel();
+  to_start(disk);
+}
+
+void to_container_N2()
+{
+   disk.write(0);
+   delay(DEFAULT_DELAY);
+   tolkatel();
+   to_start(disk);
+}
+
+void tolkatel()
+{
+  tolk.write(0);
+  delay(DEFAULT_DELAY);
+  to_start(tolk);
+}
+
+void loop() 
+{
+  //update
+  check_packet();
+  cube_color = scan();
+  //model
+  setup_container(packet);
+  container = set_container(cube_color);
+  //actuate
+  move_to_container(container);  
 }
