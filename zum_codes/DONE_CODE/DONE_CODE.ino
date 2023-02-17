@@ -118,6 +118,7 @@ void setup_container(char _packet[])
     container_1_colors[1] = _packet[2];
     container_2_colors[0] = _packet[4];
     container_2_colors[1] = _packet[5];
+    packet[0] = "-1";
   }
   else Serial.println("packet ignored");
   return;
