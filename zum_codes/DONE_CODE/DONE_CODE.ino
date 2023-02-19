@@ -89,36 +89,36 @@ char scan()
   delay(100);
 
   int* freqs = scanYELLOW();
-  if(freqs[0] > 6 && freqs[0] < 11 && freqs[1] > 13 && freqs[1] < 22 && freqs[2] > 8 && freqs[2] < 15) {
+  if(freqs[0] > 4 && freqs[0] < 8 && freqs[1] > 13 && freqs[1] < 17 && freqs[2] > 6 && freqs[2] < 11) {
     return 'Y';
   }
 
   int frequency = scanRED();
-  if(frequency > 8 && frequency < 12) {
+  if(frequency > 7 && frequency < 11) {
     return 'R';
   }
   
   frequency = scanBLUE();
-  if(frequency > 8 && frequency < 12) {
+  if(frequency > 7 && frequency < 11) {
     return 'B';
   }
   
   frequency = scanGREEN();
-  if(frequency > 14 && frequency < 21) {
+  if(frequency > 14 && frequency < 18) {
     return 'G';
   }
   
   return '0';
 }
 
-void setup_container(char _packet[])
+void setup_container()
 {
-  if ( _packet[0] == '1' && _packet[3] == '2') {
-    container_1_colors[0] = _packet[1];
-    container_1_colors[1] = _packet[2];
-    container_2_colors[0] = _packet[4];
-    container_2_colors[1] = _packet[5];
-    packet[0] = "-1";
+  if ( packet[0] == '1' && packet[3] == '2') {
+    container_1_colors[0] = packet[1];
+    container_1_colors[1] = packet[2];
+    container_2_colors[0] = packet[4];
+    container_2_colors[1] = packet[5];
+    packet[0] = '-1';
   }
   else Serial.println("packet ignored");
   return;
@@ -179,7 +179,7 @@ void loop()
   check_packet();
   cube_color = scan();
   //model
-  setup_container(packet);
+  setup_container();
   container = set_container(cube_color);
   //actuate
   move_to_container(container);  
