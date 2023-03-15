@@ -108,7 +108,7 @@ char scan()
     return 'G';
   }
   
-  return '0';
+  return '-1';
 }
 
 void setup_container()
