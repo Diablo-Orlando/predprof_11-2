@@ -24,7 +24,7 @@ class Color
     {
       delay(100);
 
-      char freqs[3] {};
+      int freqs[3] {};
       digitalWrite(s2, LOW);
       digitalWrite(s3, LOW);
       freqs[0] = pulseIn(sOut, LOW, 1000000);
