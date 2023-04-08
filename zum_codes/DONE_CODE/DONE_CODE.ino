@@ -1,5 +1,6 @@
 #include <Servo.h>
 
+#define CONVEER_PIN 3
 #define DISK_PIN 6
 #define TOLKATEL_PIN 5
 #define led 13
@@ -15,12 +16,15 @@
 
 Servo disk;
 Servo tolk;
+Servo conv;
 
 char container_1_colors[2] {};
 char container_2_colors[2] {};
 char packet[6] {};
 char cube_color;
 int container = 0;
+char state = '0';
+int res_value = 0;
 
 void setup() 
 {
@@ -32,6 +36,7 @@ void setup()
   pinMode(s3, OUTPUT);
   pinMode(DISK_PIN, OUTPUT);
   pinMode(TOLKATEL_PIN, OUTPUT);
+  pinMode(CONVEER_PIN, OUTPUT);
   pinMode(sOut, INPUT);
   
   digitalWrite(led, HIGH);
@@ -40,6 +45,7 @@ void setup()
 
   disk.attach(DISK_PIN);
   tolk.attach(TOLKATEL_PIN);
+  conv.attach(CONVEER_PIN);
   
   to_start(disk);
   to_start(tolk);
@@ -135,11 +141,17 @@ void move_to_container(int _container)
 {
   if (_container == 0) return;
 
-  if (_container == 1) 
+  if (_container == 1) {
+    delay(2000);
     to_container_N1();
+    state = '0';
+  }
 
-  if (_container == 2) 
+  if (_container == 2) {
+    delay(2000);
     to_container_N2();
+    state = '0';
+  }
 
   return;
 }
@@ -176,11 +188,19 @@ void tolkatel()
 void loop() 
 {
   //update
+  conv.attach(CONVEER_PIN);
   check_packet();
-  cube_color = scan();
-  //model
   setup_container();
-  container = set_container(cube_color);
-  //actuate
-  move_to_container(container);  
+  if (state == '0') {
+    res_value = analogRead(A0);
+    conv.write(360);
+    if (res_value > 700) {
+      state = '1';
+    }
+  }
+  if (state == '1') {
+    cube_color = scan();
+    container = set_container(cube_color);
+    move_to_container(container); 
+  }
 }
